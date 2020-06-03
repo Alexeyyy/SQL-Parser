@@ -1,0 +1,11 @@
+SELECT f.aircraft_code AS distinct
+FROM flights AS f
+	INNER JOIN aircrafts AS a ON  not a.aircraft_code=f.aircraft_code
+WHERE (((not (f.flight_id>10 and f.flight_id<20) and f.flight_id not between (SELECT 11 ) and (SELECT 20 )) and f.flight_id in (1,3,4,(SELECT DISTINCT ff.flight_id FROM flights AS ff LIMIT 1 ))) and f.aircraft_code like '%4343%')
+LIMIT 10
+########################################################################################################################################################
+SELECT data.city as join, count(*)
+FROM ((SELECT big_air_landings.city, a.airport_name, a.airport_code FROM ((SELECT ap.city AS city, count(*) AS ap_count FROM airports AS ap GROUP BY ap.city HAVING count(*)>1 )) AS big_air_landings INNER JOIN airports AS a ON a.city=big_air_landings.city )) AS data
+WHERE (((1=1 or (2=2 and 3=3)) or (((5=5 and 6=6) and (7=7 or 18-5=13)) and ((SELECT 1 LIMIT 1 )=1 and 4 between 1 and 4))) and data.city like '%лья%')
+GROUP BY data.city
+########################################################################################################################################################

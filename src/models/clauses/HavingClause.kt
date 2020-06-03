@@ -12,6 +12,7 @@ class HavingClause : Clause, Parser {
 
     override fun parse() {
         var havingContents = formString()
+        havingContents = ExpressionParseHelper.underscoreOperators(havingContents)
         expressions = ExpressionParseHelper.parseExpressionToTable(havingContents)
     }
 

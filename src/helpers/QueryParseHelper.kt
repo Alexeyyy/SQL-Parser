@@ -89,7 +89,7 @@ object QueryParseHelper {
         var queryStr = input
 
         // Комбинации из двух слов.
-        var doubleWords = arrayListOf(
+        var combinations = arrayListOf(
                 Pair("group", "by"),
                 Pair("order", "by"),
                 Pair("inner", "join"),
@@ -97,14 +97,26 @@ object QueryParseHelper {
                 Pair("left", "join"),
                 Pair("full", "join"),
                 Pair("is", "not"),
-                Pair("not", "like"),
-                Pair("and", "not"),
-                Pair("or", "not")
+                Pair("not", "like")
         )
 
-        doubleWords.forEach { comb ->
+        combinations.forEach { comb ->
             var from = "${KeyWords.keywordBoundaryMark}${comb.first}${KeyWords.keywordBoundaryMark}${KeyWords.keywordBoundaryMark}${comb.second}${KeyWords.keywordBoundaryMark}"
             var to = "${KeyWords.keywordBoundaryMark}${comb.first} ${comb.second}${KeyWords.keywordBoundaryMark}"
+            queryStr = queryStr.replace(from, to, ignoreCase = true)
+        }
+
+        // Не комбинации, но слова нужно отделить.
+        var separatedWords = arrayListOf(
+                Pair("select", "distinct"),
+                Pair("and", "not"),
+                Pair("or", "not"),
+                Pair("not", "in"),
+                Pair("not", "between")
+        )
+        separatedWords.forEach { comb ->
+            var from = "${KeyWords.keywordBoundaryMark}${comb.first}${KeyWords.keywordBoundaryMark}${KeyWords.keywordBoundaryMark}${comb.second}${KeyWords.keywordBoundaryMark}"
+            var to = "${KeyWords.keywordBoundaryMark}${comb.first}${KeyWords.keywordBoundaryMark}${comb.second}${KeyWords.keywordBoundaryMark}"
             queryStr = queryStr.replace(from, to, ignoreCase = true)
         }
 
@@ -272,7 +284,7 @@ object QueryParseHelper {
     * */
     fun convertQueryToLine(query: String) : String {
         var newQuery = query.replace("\t", " ")
-        newQuery = query.replace("\n", " ")
+        newQuery = newQuery.replace("\n", " ")
         return newQuery
     }
 }

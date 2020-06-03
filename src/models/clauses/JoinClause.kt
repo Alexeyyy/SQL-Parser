@@ -20,7 +20,8 @@ class JoinClause : Clause, Parser {
     * Типовой join: "join table as a on a.id = b.id"
     * */
     override fun parse() {
-        val joinContents = formString()
+        var joinContents = formString()
+        joinContents = ExpressionParseHelper.underscoreOperators(joinContents)
 
         // Находим тип join-а.
         type = name.substring(0, name.indexOf("join", ignoreCase = true)).trim()

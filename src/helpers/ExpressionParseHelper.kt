@@ -12,7 +12,7 @@ object ExpressionParseHelper {
     * Извлекаем следующее выражение из строки.
     * Выражение это пара условий, между которыми есть действие: and или or.
     * operation подается в виде " and ", слева и справа ограничен пробелами,
-    * потому что сам оператор может встретиться как часть названия или алиаса.
+    * потому что сам оператор может встретиться как часть названия или алиаса.keywordBoundaryMark
     * */
     private fun getNextExpression(input: String, operation: String, priority: Int) : Expression {
         var startLeft = input.indexOf(operation)
@@ -29,31 +29,11 @@ object ExpressionParseHelper {
             sl--
         }
 
-        // Проверка для not оператора при движении влево.
-        if (sl > 0 && input[sl] == ' ') {
-            // Если not может стоять перед выражением.
-            if (sl - 3 >= 0) {
-                // Далее все равно будет reverse().
-                var operator = "${input[sl - 1]}${input[sl - 2]}${input[sl - 3]}"
-
-                // Проверяем что, перед not ничего нет или стоит также пробел.
-                if ((sl - 4 == -1 || sl - 4 >= 0) && input[sl - 4] == ' ') {
-                    leftExpression.append(" ").append(operator)
-                }
-            }
-        }
-
         // Правая группа операторов.
         var rightExpression = StringBuilder()
         while (sr < input.length && input[sr] != ' ') {
             rightExpression.append(input[sr])
             sr++
-
-            // Если есть not , то там еще есть пробел.
-            if (arrayListOf("not", "like").any { it.contains(rightExpression.toString(), ignoreCase = true) }  && sr < input.length && input[sr] == ' ') {
-                rightExpression.append(" ")
-                sr++
-            }
         }
 
         // В исходной строке заменяем выражение на id.
@@ -65,8 +45,19 @@ object ExpressionParseHelper {
         // Делаем замену в строке input выражения вида a=b and c=d на id.
         var newInput = input.substring(0, leftBoundary) + id + input.substring(rightBoundary)
 
-        // Возвращает информацию об
-        return Expression(leftExpression.reverse().toString(), rightExpression.toString(), operation.trim(), id, newInput, priority)
+        var expLeft = reUnderscoreOperators(leftExpression.reverse().toString())
+        var expRight = reUnderscoreOperators(rightExpression.toString())
+
+        // Возвращаем скобки для in.
+        if (expLeft.contains("in", ignoreCase = true)) {
+            expLeft = recoverBracketsForIn(expLeft)
+        }
+
+        if (expRight.contains("in", ignoreCase = true)) {
+            expRight = recoverBracketsForIn(expRight)
+        }
+
+        return Expression(expLeft, expRight, operation.trim(), id, newInput, priority)
     }
 
     /*
@@ -109,7 +100,6 @@ object ExpressionParseHelper {
         // Triple: openedMarker, index, относиться к функции (true) или нет (false).
         var openedBrackets = ArrayDeque<Triple<Int, Int, Boolean>>()
         var openedMarker = 0
-        //var prevSymbol = ' '
 
         var symbol: Char = ' '
         var prevSymbol: Char = ' '
@@ -122,7 +112,7 @@ object ExpressionParseHelper {
 
             if (symbol == '(') {
                 // Скобка для функции.
-                if ("abcdefghijklmnopqrstuvwxyz".contains(prevSymbol, ignoreCase = true)) {
+                if ("abcdefghijklmnopqrstuvwxyz1234567890".contains(prevSymbol, ignoreCase = true)) {
                     openedBrackets.push(Triple(openedMarker, i, true))
                     openedMarker++
                     continue
@@ -170,7 +160,8 @@ object ExpressionParseHelper {
 
         // Условие состоящие из одного выражения. Например, a=b.
         if (!actions.any { inputExpression.contains(it) }) {
-            expressions.add(Expression(inputExpression, null, null, UUID.randomUUID().toString(), inputExpression, 1))
+            var exp = reUnderscoreOperators(inputExpression)
+            expressions.add(Expression(exp, null, null, UUID.randomUUID().toString(), inputExpression, 1))
         }
         // Сложное составное условие с and или or, или даже скобками!
         else {
@@ -264,5 +255,101 @@ object ExpressionParseHelper {
         }
 
         return resultExpression
+    }
+
+    /*
+    * Выделяет сложные операторы строками, для упрощения процедуры парсинга.
+    * Метод должен вызываться перед парсингом строк таким clause, как where, having, join.
+    * */
+    fun underscoreOperators(input: String) : String {
+        var str = StringBuilder()
+        var part = StringBuilder()
+
+        var index = 0
+        var nextAnd = false
+
+        while(index <= input.length) {
+            if (index != input.length) {
+                when {
+                    input[index] != ' ' -> {
+                        part.append(input[index])
+                    }
+                    part.isEmpty() -> { }
+                    else -> {
+                        var partStr = part.toString()
+
+                        if (partStr in KeyWords.operators) {
+                            str.append("${KeyWords.operatorBoundaryMark}${partStr}${KeyWords.operatorBoundaryMark}")
+
+                            // Необходимо найти следующий and и выделить его также.
+                            if (partStr.equals("between", ignoreCase = true)) {
+                                nextAnd = true
+                            }
+                        } else {
+                            // Нужно выделить and.
+                            if (nextAnd && partStr.equals("and", ignoreCase = true)) {
+                                str.append("${KeyWords.operatorBoundaryMark}${partStr}${KeyWords.operatorBoundaryMark}")
+                                nextAnd = false
+                            }
+                            else {
+                                str.append(partStr)
+                                str.append(' ')
+                            }
+                        }
+                        part = StringBuilder()
+                    }
+                }
+            }
+            else {
+                var partStr = part.toString()
+                if (partStr in KeyWords.operators) {
+                    str.append("${KeyWords.operatorBoundaryMark}${partStr}")
+                } else {
+                    str.append(partStr)
+                }
+            }
+            index++
+        }
+
+        var result = str.toString().replace(" ${KeyWords.operatorBoundaryMark}", "${KeyWords.operatorBoundaryMark}")
+        result = result.replace("${KeyWords.operatorBoundaryMark}${KeyWords.operatorBoundaryMark}", KeyWords.operatorBoundaryMark)
+
+        if (result.startsWith(KeyWords.operatorBoundaryMark)) {
+            result = result.substring(KeyWords.operatorBoundaryMark.length)
+        }
+
+        result += KeyWords.operatorBoundaryMark
+
+        if (result.endsWith(KeyWords.operatorBoundaryMark)) {
+            result = result.substring(0, result.length - KeyWords.operatorBoundaryMark.length)
+        }
+
+        return result
+    }
+
+    /*
+    * Удаляет выделения сложных операторов подвыражений при сохранении их в таблицы.
+    * Также это делается, чтобы при восстановлении запроса он выглядел по-человечески безо вских лишних операторов.
+    * */
+    private fun reUnderscoreOperators(input: String) : String {
+        return input.replace(KeyWords.operatorBoundaryMark, " ")
+    }
+
+    /*
+    * Восставливает скобки для "in" оператора.
+    * */
+    private fun recoverBracketsForIn(input: String) : String {
+        var result = input
+
+        var searchStr = " in "
+        var pos = input.indexOf(searchStr)
+        pos += searchStr.length
+
+        // На всякий случай, уже паранойя по этому поводу =)
+        if (pos < input.length) {
+            result = "${input.substring(0, pos)}(${input.substring(pos)})"
+        }
+
+        return result
     }
 }

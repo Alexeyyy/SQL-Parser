@@ -15,6 +15,10 @@ class WhereClause : Clause, Parser {
     * */
     override fun parse() {
         var whereContents = formString()
+
+        // Выделяем все сложные операторы, чтобы оставить их на уровне подвыражения.
+        whereContents = ExpressionParseHelper.underscoreOperators(whereContents)
+
         expressions = ExpressionParseHelper.parseExpressionToTable(whereContents)
     }
 

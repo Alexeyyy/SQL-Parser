@@ -7,6 +7,7 @@ import models.queryParts.Column
 
 class SelectClause : Clause, Parser {
     private var columns: MutableList<Column> = mutableListOf()
+    private var isDistinct: Boolean = false
 
     constructor(name: String, contents: MutableList<String>) : super (name, contents)
 
@@ -15,6 +16,17 @@ class SelectClause : Clause, Parser {
     * */
     override fun parse() {
         var selectContents = formString()
+
+        // Проверяем есть ли distinct?
+        var distinctStr = "distinct "
+        var distinctIndex = selectContents.indexOf(distinctStr, ignoreCase = true)
+
+        // distinct может быть и алиасом, но если это ключевое слово, то стоит оно в начале запроса.
+        if (distinctIndex == 0) {
+            this.isDistinct = true
+            selectContents = selectContents.substring(distinctStr.length)
+        }
+
         var cols = selectContents.split(',')
 
         // Парсим каждую из колонок и сохраням информацию о ней.
@@ -67,6 +79,10 @@ class SelectClause : Clause, Parser {
 
         // Сам Select.
         select.append("SELECT").append(" ")
+
+        if (isDistinct) {
+            select.append("DISTINCT").append(" ")
+        }
 
         // Перечисление колонок, функций, подзапросов с алиасами и без них.
         columns.forEachIndexed { index, col ->
