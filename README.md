@@ -7,7 +7,7 @@
 </p>
 
 <h4>Запрос 1</h4>
-```SQL
+``` SQL
 select     f.*,           (select     sum   (           a.flight_id)from flights              as a group by a.flight_id) as s         from flights as f
     join           aircrafts   as air on ((((air.aircraft_code) = f.aircraft_code)) and air.aircraft_code = f.aircraft_code) or (1=1 and 1=1 or (((2 >   3 and 4< 2 or 3!=3 and 2< 1))))
     full       outer   join   aircrafts_data as ad on ad.aircraft_code = air.aircraft_code
@@ -17,7 +17,7 @@ order  by f.aircraft_code,    f.flight_no, (select max(airports.airport_code) fr
 limit  ( select    count(*)     from        airports    )
 ```
 <h4>Запрос 2</h4>
-```
+``` SQL
 SeLeCt "f1".flight_id
 fRoM flights as "f1"
     inner join flights as f_2 on "f1".aircraft_code = f_2.aircraft_code
@@ -28,7 +28,7 @@ limit ((select count(*) alias_1 from flights limit all) + (select count(*) + 1 a
 offset (select 8)
 ```
 <h4>Запрос 3</h4>
-```
+``` SQL
 select (select (select (select (select (select (select (select (select (select 1 a)b)c)d)e)f)g)h)i)k
 ```
 <p>
