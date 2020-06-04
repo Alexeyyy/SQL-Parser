@@ -1,11 +1,84 @@
-SELECT f.aircraft_code AS distinct
-FROM flights AS f
-	INNER JOIN aircrafts AS a ON  not a.aircraft_code=f.aircraft_code
-WHERE (((not (f.flight_id>10 and f.flight_id<20) and f.flight_id not between (SELECT 11 ) and (SELECT 20 )) and f.flight_id in (1,3,4,(SELECT DISTINCT ff.flight_id FROM flights AS ff LIMIT 1 ))) and f.aircraft_code like '%4343%')
-LIMIT 10
+SELECT f.*    a1, ( ( (
+    SELECT sum
+        (a.flight_id   ) ss FROM flights       a    GROUP    BY   a.flight_id )
+    )
+    )s
+FROM (
+    select
+           *
+    from
+         flights   )f
+	INNER JOIN aircrafts air
+	    ON (
+	        (
+	            air.aircraft_code  = f.aircraft_code      and    air.aircraft_code=f.aircraft_code ) or ( ( 1=1 and 1    =1) or   (  (2>3 and 4<2) or ( 3 !=  3 and 2 <> 1  ) )   ) )
+	FULL    OUTER    JOIN    aircrafts_data    ad       ON   ad.aircraft_code  =       air.aircraft_code
+	   LEFT     JOIN    airports_data    apd   ON      apd.airport_code   =    f.aircraft_code    and    f.flight_id   =    10   * 10    ^ 2
+WHERE
+      (
+          f.flight_no
+              ='a'
+              and (
+                  (  (   f.aircraft_code = 'asd' or f.aircraft_code='5454')
+
+                         and f.aircraft_code='2332'   )   or (   SELECT count(*)  +   ( ( ( SELECT     count(*) FROM flights ))) FROM
+
+                                                                                                                                      tickets titi)
+
+                                                                 >10))
+ORDER
+
+    BY
+                  f.aircraft_code   ,
+
+                  f.flight_no, ( ( ( SELECT max(airports.airport_code)            FROM airports LIMIT
+                      10
+
+                      ) )
+
+                      )
+
+                  DESC
+            offset
+    24
+LIMIT (  (  (
+
+    SELECT count(*)
+
+    FROM airports )
+
+
+    ))
 ########################################################################################################################################################
-SELECT data.city as join, count(*)
-FROM ((SELECT big_air_landings.city, a.airport_name, a.airport_code FROM ((SELECT ap.city AS city, count(*) AS ap_count FROM airports AS ap GROUP BY ap.city HAVING count(*)>1 )) AS big_air_landings INNER JOIN airports AS a ON a.city=big_air_landings.city )) AS data
-WHERE (((1=1 or (2=2 and 3=3)) or (((5=5 and 6=6) and (7=7 or 18-5=13)) and ((SELECT 1 LIMIT 1 )=1 and 4 between 1 and 4))) and data.city like '%лья%')
-GROUP BY data.city
+select 1 alias
+########################################################################################################################################################
+select *
+from flights f
+    left outer join flights_v fv on fv.flight_id = ((10) * 10 + 15 - 15) ^ 2
+where f.flight_id = 10*10
+########################################################################################################################################################
+select a.* as a, (select 1)"2323"
+from airports a
+    left join airports_data ad on ad.airport_code = a.airport_code and ad.city is null
+where ad.airport_code is NULL
+########################################################################################################################################################
+SELECT author.name, count(book.id), sum(book.cost)
+FROM author
+LEFT JOIN book ON (author.id = book.author_id)
+GROUP BY author.name
+HAVING COUNT(*) > 1 AND SUM(book.cost) > 500
+LIMIT 10;
+########################################################################################################################################################
+SELECT * FROM book
+########################################################################################################################################################
+SeLeCt "f1".flight_id
+fRoM flights as "f1"
+    inner join flights as f_2 on "f1".aircraft_code = f_2.aircraft_code
+where "f1".flight_id between 10 and 100 and f_2.flight_id not in (1,2,3,4,5,6,7, (select 1), (select (select 2)))
+group by "f1".flight_id
+order by "f1".flight_id DESC
+limit ((select count(*) alias_1 from flights limit all) + (select count(*) + 1 alias_2 from flights limit null))
+offset (select 8)
+########################################################################################################################################################
+select (select (select (select (select (select (select (select (select (select 1 a)b)c)d)e)f)g)h)i)k
 ########################################################################################################################################################

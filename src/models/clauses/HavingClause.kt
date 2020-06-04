@@ -5,6 +5,9 @@ import models.clauses.core.Clause
 import models.clauses.core.Parser
 import models.queryParts.Expression
 
+/*
+* Класс, отвечающий за парсинг having части запроса.
+* */
 class HavingClause : Clause, Parser {
     private var expressions: MutableList<Expression> = mutableListOf()
 

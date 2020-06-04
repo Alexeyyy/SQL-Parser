@@ -66,7 +66,7 @@ object TestHelper {
                     var subQueriesBounds = QueryParseHelper.findQueriesBounds(normalizedQuery)
 
                     // 4. Создание дерева запросов.
-                    var tree = QueryTree(normalizedQuery, subQueriesBounds)
+                    var tree = QueryTree(normalizedQuery, subQueriesBounds, queryStr)
 
                     // 5. Парсинг запросов внутри дерева.
                     tree.parse()
@@ -76,13 +76,13 @@ object TestHelper {
                 } catch (e: Exception) {
                     println("The error raised while parsing the query number $i ")
                 }
+                finally {
+                    println("**********************************************************************************")
+                    print("\n\n\n\n\n")
+                }
             }
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             println("Something serious occurred! The message is ${e.message}")
-        }
-        finally {
-            println("**********************************************************************************")
         }
     }
 }

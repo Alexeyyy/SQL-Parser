@@ -4,6 +4,9 @@ import helpers.QueryParseHelper
 import models.clauses.core.Clause
 import models.clauses.core.Parser
 
+/*
+* Класс, отвечающий за парсинг limit части запроса.
+* */
 class LimitClause : Clause, Parser {
     // Значение может быть ограничено и подзапросом, поэтому String.
     private var limitValue: String = ""
@@ -18,7 +21,8 @@ class LimitClause : Clause, Parser {
     override fun print() {
         println("========= LIMIT =========\n")
 
-        if (QueryParseHelper.containsRegex(limitValue, "")) {
+        if (QueryParseHelper.containsRegex(limitValue, "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})")) {
+            limitValue = QueryParseHelper.removeExtraBracketsForSubQuery(limitValue)
             println("The limit is represented by subquery. Watch $limitValue for more details")
         }
         else {

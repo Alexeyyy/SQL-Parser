@@ -4,6 +4,10 @@ import helpers.QueryParseHelper
 import models.clauses.core.Clause
 import models.clauses.core.Parser
 
+
+/*
+* Класс, отвечающий за парсинг offset части запроса.
+* */
 class OffsetClause : Clause, Parser {
     private var offsetValue: String = ""
 
@@ -17,7 +21,8 @@ class OffsetClause : Clause, Parser {
     override fun print() {
         println("========= OFFSET =========\n")
 
-        if (QueryParseHelper.containsRegex(offsetValue, "")) {
+        if (QueryParseHelper.containsRegex(offsetValue, "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})")) {
+            offsetValue = QueryParseHelper.removeExtraBracketsForSubQuery(offsetValue)
             println("The offset is represented by subquery. Watch $offsetValue for more details")
         }
         else {

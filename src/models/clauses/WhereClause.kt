@@ -5,6 +5,9 @@ import models.clauses.core.Clause
 import models.clauses.core.Parser
 import models.queryParts.Expression
 
+/*
+* Класс, отвечающий за парсинг where части запроса.
+* */
 class WhereClause : Clause, Parser {
     private var expressions: MutableList<Expression> = mutableListOf()
 
@@ -45,27 +48,7 @@ class WhereClause : Clause, Parser {
         var where = StringBuilder()
 
         where.append("WHERE").append(" ")
-
-        var condition = expressions.maxBy { it.priority }
-        var priority = condition!!.priority
-
-        // Условие состоит из одного выражения.
-        if (priority == 1) {
-            where.append(condition.leftExpression)
-            return where.toString()
-        }
-
-        // Собираем выражение.
-        var resultExpression = "(${condition.leftExpression} ${condition.operator} ${condition.rightExpression})"
-        priority--
-
-        while (priority != 0) {
-            condition = expressions.single { it.priority == priority }
-            resultExpression = resultExpression.replace(condition.id, "(${condition.leftExpression} ${condition.operator} ${condition.rightExpression})")
-            priority--
-        }
-
-        where.append(resultExpression)
+        where.append(ExpressionParseHelper.restoreExpression(expressions))
 
         return where.toString()
     }

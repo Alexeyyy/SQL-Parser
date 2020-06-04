@@ -1,5 +1,6 @@
 package helpers
 
+import helpers.QueryParseHelper.matchRegex
 import models.queryParts.Expression
 import java.util.*
 
@@ -15,7 +16,7 @@ object ExpressionParseHelper {
     * потому что сам оператор может встретиться как часть названия или алиаса.keywordBoundaryMark
     * */
     private fun getNextExpression(input: String, operation: String, priority: Int) : Expression {
-        var startLeft = input.indexOf(operation)
+        var startLeft = input.indexOf(operation, ignoreCase = true)
         var startRight = startLeft + operation.length
 
         // Временные значения, которые будем менять.
@@ -49,13 +50,17 @@ object ExpressionParseHelper {
         var expRight = reUnderscoreOperators(rightExpression.toString())
 
         // Возвращаем скобки для in.
-        if (expLeft.contains("in", ignoreCase = true)) {
+        /*if (expLeft.contains("in", ignoreCase = true)) {
             expLeft = recoverBracketsForIn(expLeft)
         }
 
         if (expRight.contains("in", ignoreCase = true)) {
             expRight = recoverBracketsForIn(expRight)
-        }
+        }*/
+
+        // Удаление лишних скобок в подзапросах.
+        expLeft = QueryParseHelper.removeExtraBracketsForSubQuery(expLeft)
+        expRight = QueryParseHelper.removeExtraBracketsForSubQuery(expRight)
 
         return Expression(expLeft, expRight, operation.trim(), id, newInput, priority)
     }
@@ -159,13 +164,13 @@ object ExpressionParseHelper {
         var lastId = ""
 
         // Условие состоящие из одного выражения. Например, a=b.
-        if (!actions.any { inputExpression.contains(it) }) {
+        if (!actions.any { inputExpression.contains(it, ignoreCase = true) }) {
             var exp = reUnderscoreOperators(inputExpression)
             expressions.add(Expression(exp, null, null, UUID.randomUUID().toString(), inputExpression, 1))
         }
         // Сложное составное условие с and или or, или даже скобками!
         else {
-            while (actions.any { expressionCopy.contains(it) }) {
+            while (actions.any { expressionCopy.contains(it, ignoreCase = true) }) {
                 val pos = getNextBrackets(expressionCopy)
                 var subexpression = ""
 
@@ -176,7 +181,7 @@ object ExpressionParseHelper {
 
                     // Выражение просто ограничено скобками, например (a=b).
                     // Удаляем скобки и переходим к следующей итерации.
-                    if (!actions.any { subexpression.contains(it) }) {
+                    if (!actions.any { subexpression.contains(it, ignoreCase = true) }) {
                         expressionCopy = deleteExtraBrackets(expressionCopy, pos)
                         continue
                     }
@@ -187,9 +192,9 @@ object ExpressionParseHelper {
                 }
 
                 // В подвыражении в скобках есть действия.
-                while (actions.any { subexpression.contains(it) }) {
+                while (actions.any { subexpression.contains(it, ignoreCase = true) }) {
                     // Первоприоритетная операция and.
-                    if (subexpression.contains(" and ")) {
+                    if (subexpression.contains(" and ", ignoreCase = true)) {
                         var expression = getNextExpression(subexpression, " and ", priority)
                         expressions.add(expression)
                         priority++
@@ -202,7 +207,7 @@ object ExpressionParseHelper {
                     }
 
                     // Вторая по приоритету операция or.
-                    if (subexpression.contains(" or ")) {
+                    if (subexpression.contains(" or ", ignoreCase = true)) {
                         var expression = getNextExpression(subexpression, " or ", priority)
                         expressions.add(expression)
                         priority++

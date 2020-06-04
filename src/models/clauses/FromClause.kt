@@ -5,6 +5,9 @@ import models.clauses.core.Clause
 import models.clauses.core.Parser
 import models.queryParts.Source
 
+/*
+* Класс, отвечающий за парсинг from части запроса.
+* */
 class FromClause : Clause, Parser {
     private var sources: MutableList<Source> = mutableListOf()
 
@@ -22,11 +25,12 @@ class FromClause : Clause, Parser {
 
             // Вложенный запрос?
             if (QueryParseHelper.containsRegex(s, "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})")) {
-                sources.add(Source(res.second, res.first, "subquery"))
+                var name = QueryParseHelper.removeExtraBracketsForSubQuery(res.first)
+                sources.add(Source(name, res.second, "subquery"))
                 continue
             }
             // Источник данных или view, или table.
-            sources.add(Source(res.second, res.first, "table/view"))
+            sources.add(Source(res.first, res.second, "table/view"))
         }
     }
 

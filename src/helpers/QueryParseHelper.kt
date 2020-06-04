@@ -1,6 +1,7 @@
 package helpers
 
 import java.lang.Exception
+import java.util.ArrayDeque
 import kotlin.collections.ArrayList
 
 
@@ -152,6 +153,8 @@ object QueryParseHelper {
         var newStr = StringBuilder()
         var index = 0
 
+        var prevKeyword = ""
+
         // Проходим посимвольно строку.
         while(index < input.length) {
             // Если символ не пробел, то сохраняем его в подстроку.
@@ -185,6 +188,34 @@ object QueryParseHelper {
                     else -> part.append(keyword)
                 }
 
+                // Недостающие AS для алиасов.
+                // Если предыдущая часть не пуста, то проверяем нужно ли обозначать алиас.
+                if (prevKeyword.isNotEmpty()) {
+                    // Проверка 1. Предыдущее слово и текущее слово не ключевые.
+                    if (prevKeyword !in KeyWords.keyWords && keywordStr !in KeyWords.keyWords) {
+
+                        // Проверка 2. Алиас всегда состоит только из букв, цифр, некоторых знаков: _
+                        if (matchRegex(keywordStr, "^\\d*[a-zA-Zа-яА-Я_\"][\"a-zA-Zа-яА-Я_\\d]*\$")) {
+
+                            // Проверка 3. Предыдущее слово не оканчивается на ',' и другие знаки.
+                            var checkSet = arrayListOf(',', '!', '=', '>', '<')
+                            var containsIt = false
+
+                            for (i in checkSet.indices) {
+                                if (prevKeyword.contains(checkSet[i], ignoreCase = true) || keywordStr.contains(checkSet[i], ignoreCase = true)) {
+                                    containsIt = true
+                                    break
+                                }
+                            }
+
+                            if (!containsIt) {
+                                newStr.append("${KeyWords.keywordBoundaryMark}AS${KeyWords.keywordBoundaryMark}")
+                            }
+                        }
+                    }
+                }
+
+                prevKeyword = keywordStr
                 newStr.append(part)
             }
             else {
@@ -250,21 +281,15 @@ object QueryParseHelper {
         var alias: String? = null
         var value: String
 
-        var split = input.split("as", ignoreCase = true)
+        var split = input.split(" ", ignoreCase = true)
 
-        if (split.size == 2) {
+        if (split.size == 3) {
             value = split[0].trim()
-            alias = split[1].trim()
+            // [1] - as.
+            alias = split[2].trim()
         }
         else {
-            split = input.split(' ')
-            if (split.size == 2) {
-                value = split[0].trim()
-                alias = split[1].trim()
-            }
-            else {
-                value = input.trim()
-            }
+            value = input.trim()
         }
 
         return Pair(value, alias)
@@ -280,11 +305,42 @@ object QueryParseHelper {
     }
 
     /*
+    * Проверяет насколько строка соответствует описанию.
+    * */
+    fun matchRegex(input: String, pattern: String) : Boolean {
+        var regex = Regex(pattern, RegexOption.IGNORE_CASE)
+        return regex.matches(input)
+    }
+
+    /*
+    * Когда подзапрос заменяется на guid, то остается несколько скобок слева и справа.
+    * "Красота требует жертв", как и вывод, поэтому удаляем их.
+    * А практичность заключается в том, чтобы запрос не засорять скобками при восстановлении.
+    * */
+    fun removeExtraBracketsForSubQuery(input: String) : String {
+        if (matchRegex(input, "[(]+([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})[)]+")) {
+            var regex = Regex("([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})")
+            var ranges = regex.findAll(input).map { it.range }
+
+            if (ranges.count() == 1) {
+                var range = ranges.first()
+                return input.substring(range.first, range.last + 1) //+1 гарантированно есть, так как в input есть скобки.
+            }
+        }
+
+        return input
+    }
+
+    /*
     * Убирает лишние символы из строки запроса.
     * */
-    fun convertQueryToLine(query: String) : String {
-        var newQuery = query.replace("\t", " ")
+    fun convertQueryToLine(input: String) : String {
+        var newQuery = input.replace("\t", " ")
         newQuery = newQuery.replace("\n", " ")
+
+        // Делается специально, чтобы правильно отработала постановка алиасов.
+        newQuery = newQuery.replace(",", " , ")
+
         return newQuery
     }
 }

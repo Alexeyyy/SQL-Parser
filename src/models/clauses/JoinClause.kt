@@ -7,6 +7,10 @@ import models.clauses.core.Parser
 import models.queryParts.Expression
 import java.lang.StringBuilder
 
+
+/*
+* Класс, отвечающий за парсинг join (всех типов) части запроса.
+* */
 class JoinClause : Clause, Parser {
     private var source: String = ""
     private var alias: String? = null
@@ -85,26 +89,7 @@ class JoinClause : Clause, Parser {
 
         // Восстановление условий.
         join.append("ON").append(" ")
-        var condition = expressions.maxBy { it.priority }
-        var priority = condition!!.priority
-
-        // Условие состоит из одного выражения.
-        if (priority == 1) {
-            join.append(condition.leftExpression)
-            return join.toString()
-        }
-
-        // Собираем выражение.
-        var resultExpression = "(${condition.leftExpression} ${condition.operator} ${condition.rightExpression})"
-        priority--
-
-        while (priority != 0) {
-            condition = expressions.single { it.priority == priority }
-            resultExpression = resultExpression.replace(condition.id, "(${condition.leftExpression} ${condition.operator} ${condition.rightExpression})")
-            priority--
-        }
-
-        join.append(resultExpression)
+        join.append(ExpressionParseHelper.restoreExpression(expressions))
 
         return join.toString()
     }

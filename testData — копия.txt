@@ -1,0 +1,56 @@
+SELECT f.aircraft_code AS data
+FROM flights AS f
+	INNER JOIN aircrafts AS a ON  not a.aircraft_code=f.aircraft_code
+WHERE (((not (f.flight_id>10 and f.flight_id<20) and f.flight_id not between (SELECT 11 ) and (SELECT 20)) and f.flight_id in (1,3,4,(SELECT DISTINCT ff.flight_id FROM flights AS ff LIMIT 1 ))) and f.aircraft_code like '%4343%')
+LIMIT 10
+########################################################################################################################################################
+SELECT data.city as j, count(*)
+FROM ((SELECT big_air_landings.city, a.airport_name, a.airport_code FROM ((SELECT ap.city AS city, count(*) AS ap_count FROM airports AS ap GROUP BY ap.city HAVING count(*)>1 )) AS big_air_landings INNER JOIN airports AS a ON a.city=big_air_landings.city )) AS data
+WHERE (((1=1 or (2=2 and 3=3)) or (((5=5 and 6=6) and (7=7 or 18-5=13)) and ((SELECT 1 LIMIT 1 )=1 and 4 between 1 and 4))) and data.city like '%лья%')
+GROUP BY data.city
+########################################################################################################################################################
+select     f.*,           (select     sum   (           a.flight_id)from flights              as a group by a.flight_id) as s         from flights as f
+    join           aircrafts   as air on ((((air.aircraft_code) = f.aircraft_code)) and air.aircraft_code = f.aircraft_code) or (1=1 and 1=1 or (((2 >   3 and 4< 2 or 3!=3 and 2< 1))))
+    full       outer   join   aircrafts_data as ad on ad.aircraft_code = air.aircraft_code
+    left  join          airports_data     as    apd on    apd.airport_code = f.aircraft_code and apd.airport_code =      (select ap.airport_code from airports   as   ap   where   (select     1 as   column) = 1   limit  1   )
+where   f.flight_no =   'a'    and   ((f.aircraft_code = 'asd' or    f.aircraft_code    = '5454'    ) and      f.aircraft_code = '2332' or (select count(*)   + (select count(*)    from flights) from tickets)     > 10)
+order  by f.aircraft_code,    f.flight_no, (select max(airports.airport_code) from airports limit 10) asc
+limit  ( select    count(*)     from        airports    )
+########################################################################################################################################################
+select data.city, count(*)
+from (
+    select big_air_landings.city, a.airport_name, a.airport_code
+    from (
+             select ap.city as city, count(*) as ap_count
+             from airports as ap
+             group by ap.city
+             having count(*) > 1
+         ) as big_air_landings
+        join airports as a on a.city = big_air_landings.city
+) as data
+where (1=1 or 2=2 and 3=3 or (5=5 and 6=6 and ((7=7 or (18-5 = 13)))) and (((select 1 limit 1) = 1) and 4 between 1 and 4)) and data.city like '%лья%'
+group by data.city
+########################################################################################################################################################
+select a.*, b.*
+from basket_a as a
+    full join basket_b as b on a.fruit = b.fruit
+where a.id is null or b.id is null
+########################################################################################################################################################
+select max(f.flight_id), min(f.flight_id)
+from flights as f
+where f.flight_id not between (((select 11))) and (select 20)
+########################################################################################################################################################
+select *
+from flights as f
+where f.aircraft_code not like '%232%'
+########################################################################################################################################################
+select *
+from flights as f
+where not (f.flight_id > 10 and f.flight_id < 20)
+limit 10
+########################################################################################################################################################
+select *
+from airports as a
+    left join airports_data ad on ad.airport_code = a.airport_code
+where ad.airport_code is NULL
+########################################################################################################################################################

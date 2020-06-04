@@ -5,6 +5,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class QueryTree : Parser {
+    private var initialQuery: String = ""
     private var relations: MutableList<Pair<Int, Int>> = mutableListOf()
     private var bounds: ArrayList<IntRange> = ArrayList()
     private var queries: MutableList<Query> = mutableListOf()
@@ -12,7 +13,8 @@ class QueryTree : Parser {
     /*
     * Конструктор собирает дерево связей между подзапросами.
     * */
-    constructor(input: String, queryBounds: ArrayList<IntRange>) {
+    constructor(input: String, queryBounds: ArrayList<IntRange>, initialQuery: String) {
+        this.initialQuery = initialQuery
         this.bounds = queryBounds
 
         // Если нет подзапросов, единственный select.
@@ -113,7 +115,10 @@ class QueryTree : Parser {
     }
 
     override fun print() {
+        println("QUERY TO PARSE:\n")
+        println(this.initialQuery)
         queries.forEach { it.print() }
+        println("=========================\n")
         println("Restored query string:\n\n${this.recover()}")
     }
 

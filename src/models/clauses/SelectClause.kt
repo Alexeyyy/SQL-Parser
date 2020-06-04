@@ -5,6 +5,9 @@ import models.clauses.core.Clause
 import models.clauses.core.Parser
 import models.queryParts.Column
 
+/*
+* Класс, отвечающий за парсинг select части запроса.
+* */
 class SelectClause : Clause, Parser {
     private var columns: MutableList<Column> = mutableListOf()
     private var isDistinct: Boolean = false
@@ -35,23 +38,24 @@ class SelectClause : Clause, Parser {
 
             // Вложенный запрос?
             if (QueryParseHelper.containsRegex(col, "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})")) {
-                columns.add(Column(res.second, res.first, "subquery"))
+                var name = QueryParseHelper.removeExtraBracketsForSubQuery(res.first)
+                columns.add(Column(name, res.second, "subquery"))
                 continue
             }
 
             // Это функция? Например, count(*), sum(*) или нечто подобное.
-            if (QueryParseHelper.containsRegex(col, "[a-zA-Z]*[(]")) {
-                columns.add(Column(res.second, res.first, "function"))
+            if (QueryParseHelper.containsRegex(col, "[a-zA-Z]+[(]+")) {
+                columns.add(Column(res.first, res.second, "function"))
                 continue
             }
 
             // Имеется ли в виду выборка всех колонок?
             if (col.contains('*')) {
-                columns.add(Column(res.second, res.first, "selects everything"))
+                columns.add(Column(res.first, res.second, "selects everything"))
                 continue
             }
 
-            columns.add(Column(res.second, res.first, "column"))
+            columns.add(Column(res.first, res.second, "column"))
         }
     }
 

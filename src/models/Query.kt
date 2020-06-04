@@ -113,9 +113,9 @@ class Query : Parser {
             it.parse()
         }
         this.where?.parse()
-        this.orderBy?.parse()
         this.groupBy?.parse()
         this.having?.parse()
+        this.orderBy?.parse()
         this.limit?.parse()
         this.offset?.parse()
     }

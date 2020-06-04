@@ -2,6 +2,9 @@ package models.clauses.core
 
 import com.sun.org.apache.xpath.internal.operations.Bool
 
+/*
+* Базовый интерфейс для классов по работе с clauses.
+* */
 interface Parser {
     /*
     * Метод парсинга для элемента запроса: для каждого своя реализация.

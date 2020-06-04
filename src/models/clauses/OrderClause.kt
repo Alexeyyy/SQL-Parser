@@ -5,6 +5,10 @@ import models.clauses.core.Clause
 import models.clauses.core.Parser
 import models.queryParts.Column
 
+
+/*
+* Класс, отвечающий за парсинг order by части запроса.
+* */
 class OrderClause : Clause, Parser {
     private var orderedBy: MutableList<Column> = mutableListOf()
     private var orderType: String = "" //ASC, DESC
@@ -22,12 +26,13 @@ class OrderClause : Clause, Parser {
         for (item in items) {
             // Вложенный запрос?
             if (QueryParseHelper.containsRegex(item, "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})")) {
-                orderedBy.add(Column(null, item, "subquery"))
+                var name = QueryParseHelper.removeExtraBracketsForSubQuery(item)
+                orderedBy.add(Column(name, null, "subquery"))
                 continue
             }
 
             // Колонка.
-            orderedBy.add(Column(null, item, "column"))
+            orderedBy.add(Column(item, null, "column"))
         }
     }
 

@@ -6,6 +6,9 @@ import models.clauses.core.Clause
 import models.clauses.core.Parser
 import models.queryParts.Column
 
+/*
+* Класс, отвечающий за парсинг group by части запроса.
+* */
 class GroupClause : Clause, Parser {
     private var groupedBy: MutableList<Column> = mutableListOf()
 
@@ -18,12 +21,13 @@ class GroupClause : Clause, Parser {
         for (item in items) {
             // Вложенный запрос?
             if (QueryParseHelper.containsRegex(item, "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})")) {
-                groupedBy.add(Column(null, item, "subquery"))
+                var name = QueryParseHelper.removeExtraBracketsForSubQuery(item)
+                groupedBy.add(Column(name, null, "subquery"))
                 continue
             }
 
             // Колонка.
-            groupedBy.add(Column(null, item, "column"))
+            groupedBy.add(Column(item, null, "column"))
         }
     }
 
