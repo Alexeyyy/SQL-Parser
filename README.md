@@ -3,10 +3,12 @@
 Парсер, который позволяет "разобрать" SQL запрос вида SELECT по "полочкам".
 </p>
 <p>
-Например, вот такой вот запрос (несовсем логичный пример, но запрос синтаксически верен и имеет место быть):
+Например, вот такие запросы (несовсем логичные примеры с точки зрения смысла, но синтаксически верные --> значит имеют место быть):
 </p>
 
 ```SQL
+Запрос 1
+
 select     f.*,           (select     sum   (           a.flight_id)from flights              as a group by a.flight_id) as s         from flights as f
     join           aircrafts   as air on ((((air.aircraft_code) = f.aircraft_code)) and air.aircraft_code = f.aircraft_code) or (1=1 and 1=1 or (((2 >   3 and 4< 2 or 3!=3 and 2< 1))))
     full       outer   join   aircrafts_data as ad on ad.aircraft_code = air.aircraft_code
@@ -15,9 +17,24 @@ where   f.flight_no =   'a'    and   ((f.aircraft_code = 'asd' or    f.aircraft_
 order  by f.aircraft_code,    f.flight_no, (select max(airports.airport_code) from airports limit 10) asc
 limit  ( select    count(*)     from        airports    )
 
+Запрос 2
+
+SeLeCt "f1".flight_id
+fRoM flights as "f1"
+    inner join flights as f_2 on "f1".aircraft_code = f_2.aircraft_code
+where "f1".flight_id between 10 and 100 and f_2.flight_id not in (1,2,3,4,5,6,7, (select 1), (select (select 2)))
+group by "f1".flight_id
+order by "f1".flight_id DESC
+limit ((select count(*) alias_1 from flights limit all) + (select count(*) + 1 alias_2 from flights limit null))
+offset (select 8)
+
+Запрос 3
+
+select (select (select (select (select (select (select (select (select (select 1 a)b)c)d)e)f)g)h)i)k
 ```
+
 <p>
-P.S. схема и данные PG-базы данных взяты с сайта <a href="https://postgrespro.ru/education/demodb">PostgresPro</a>, за что им отдельное Спасибо!
+P.S. схема и данные PG-базы взяты с сайта <a href="https://postgrespro.ru/education/demodb">PostgresPro</a>, за что им отдельное Спасибо!
 </p>
 
 <h2>Как это работает?</h2>
